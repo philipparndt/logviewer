@@ -4,7 +4,6 @@ import HotkeyText from "./HotkeyText"
 import LogLines from "./LogLines"
 import Option from "./Option"
 import clipboardy from "clipboardy"
-import Markdown from "ink-markdown";
 import Separator from "./Separator"
 
 const LogViewer = () => {
@@ -15,9 +14,9 @@ const LogViewer = () => {
     const [lineWidth, setLineWidth] = useState(50)
     const [follow, setFollow] = useState(true)
     const [log, setLog] = useState<string[]>([
-        "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] Starting up",
-        "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] Some",
-        "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] More",
+        "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] 1 Starting up",
+        "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] 2 Some",
+        "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] 3 More",
         JSON.stringify({ ts: "2022-12-10T12:00:00.000Z", level: "INFO", message: "Some JSON" }),
         JSON.stringify({ ts: "2022-12-10T12:00:00.000Z", level: "ERROR", message: "Uuups something went wrong" }),
         JSON.stringify({ ts: "2022-12-10T12:00:00.000Z", level: "DEBUG", message: "some debug message" })
@@ -33,7 +32,7 @@ const LogViewer = () => {
 
     useEffect(() => {
         const cb = () => {
-            setPageSize(process.stdout.rows - 1)
+            setPageSize(process.stdout.rows - 3)
             setLineWidth(process.stdout.columns - 2)
         }
         const intervalStatusCheck = setInterval(cb, 1000)
@@ -48,7 +47,7 @@ const LogViewer = () => {
     useInput((input, key) => {
         if (key.downArrow || input === "j") {
             // setFollow(false)
-            setLogIndex((index) => Math.min(index + 1, log.length - pageSize))
+            setLogIndex((index) => Math.min(index + 1, Math.max(0, log.length - pageSize)))
         }
         else if (key.upArrow || input === "k") {
             // setFollow(false)
@@ -101,7 +100,7 @@ const LogViewer = () => {
     })
 
     return <>
-        <Box borderStyle="round" flexDirection="column" height={pageSize} paddingX={1}>
+        <Box borderStyle="round" borderColor="gray" flexDirection="column" height={pageSize + 2} paddingX={1}>
             <LogLines lines={log.slice(logIndex, logIndex + pageSize)} lineWidth={lineWidth - 2} x={x} raw={raw}/>
         </Box>
 
@@ -112,7 +111,7 @@ const LogViewer = () => {
                 <Separator/>
                 <Option enabled={raw}><HotkeyText>raw</HotkeyText></Option>
                 <Separator/>
-                <Text>{logIndex}/{log.length}</Text>
+                <Text>{logIndex}/{log.length}/{pageSize}</Text>
                 <Separator/>
                 <HotkeyText>quit</HotkeyText>
                 <Separator/>
