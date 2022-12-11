@@ -7,7 +7,7 @@ type HotkeyTextProps = {
 }
 const HotkeyText: React.FC<HotkeyTextProps> = ({ position, children }) => {
     const pos = position ?? 0
-    const start = children.substring(0, pos) + "<"
+    const start = "<" + children.substring(0, pos)
     const hotkey = children.substring(pos, pos + 1)
     const end = children.substring(pos + 1) + ">"
     return <>

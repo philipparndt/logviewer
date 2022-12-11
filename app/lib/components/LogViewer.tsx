@@ -1,5 +1,6 @@
 import { Box, Text, useApp, useInput } from "ink"
 import React, { useEffect, useState } from "react"
+import { copy, copyAll } from "../copy.js"
 import HotkeyText from "./HotkeyText.js"
 import LogLines from "./LogLines.js"
 import Option from "./Option.js"
@@ -95,12 +96,21 @@ const LogViewer = () => {
         }
         else if (input === "c") {
             if (detailView) {
-                clipboardy.writeSync(log[logIndex])
+                copy(log[logIndex])
             }
             else {
-                clipboardy.writeSync(log.join("\n"))
+                copyAll(log)
             }
             setMessage("😎 Copied to clipboard")
+        }
+        else if (input === "y") {
+            if (detailView) {
+                copy(log[logIndex], true)
+            }
+            else {
+                copyAll(log, true)
+            }
+            setMessage("😎 Copied YAML to clipboard")
         }
         else {
             setLog((log) => [...log, JSON.stringify(
@@ -138,6 +148,8 @@ const LogViewer = () => {
                 <HotkeyText>quit</HotkeyText>
                 <Separator/>
                 <HotkeyText>copy</HotkeyText>
+                <Separator/>
+                <HotkeyText position={5}>copy yaml</HotkeyText>
             </>}
         </Box>
     </>
