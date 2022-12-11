@@ -54,10 +54,10 @@ const LogViewer = () => {
             setLogIndex((index) => Math.max(0, index - 1))
         }
         else if (key.leftArrow || input === "h") {
-            setX((x) => Math.max(0, x - 1))
+            setX((x) => Math.max(0, x - 10))
         }
         else if (key.rightArrow || input === "l") {
-            setX((x) => x + 1)
+            setX((x) => x + 10)
         }
         else if (input === "q") {
             app.exit()
