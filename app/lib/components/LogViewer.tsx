@@ -4,12 +4,13 @@ import { copy, copyAll } from "../copy.js"
 import HotkeyText from "./HotkeyText.js"
 import LogLines from "./LogLines.js"
 import Option from "./Option.js"
-import clipboardy from "clipboardy"
 import Separator from "./Separator.js"
 import DetailView from "./DetailView.js"
 
 const LogViewer = () => {
     const [detailView, setDetailView] = useState(false)
+    const [startIndex, setStartIndex] = useState(0)
+    const [cursor, setCursor] = useState(0)
     const [message, setMessage] = useState<string | undefined>(undefined)
     const [raw, setRaw] = useState(false)
     const [x, setX] = useState(0)
@@ -25,7 +26,6 @@ const LogViewer = () => {
         JSON.stringify({ ts: "2022-12-10T12:00:00.000Z", level: "ERROR", message: "Uuups something went wrong" }),
         JSON.stringify({ ts: "2022-12-10T12:00:00.000Z", level: "DEBUG", message: "some debug message" })
     ])
-    const [logIndex, setLogIndex] = useState(0)
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -48,14 +48,53 @@ const LogViewer = () => {
     }, [])
 
     const app = useApp()
-    useInput((input, key) => {
-        if (key.downArrow || input === "j") {
-            // setFollow(false)
-            setLogIndex((index) => Math.min(index + 1, Math.max(0, log.length - 1)))
+    const moveCursorToEnd = (length = log.length) => {
+        if (length > pageSize) {
+            setStartIndex(length - pageSize)
+            setCursor(pageSize - 1)
         }
-        else if (key.upArrow || input === "k") {
+        else {
+            setCursor(length - 1)
+        }
+    }
+
+    const moveCursor = (amount: number) => {
+        const next = cursor + amount
+        setCursor(Math.max(0, Math.min(next, pageSize - 1, log.length - 1)))
+        if (next >= pageSize) {
+            setStartIndex(Math.min(startIndex + 1, log.length - pageSize))
+        }
+        if (next < 0) {
+            setStartIndex(Math.max(0, startIndex - 1))
+        }
+    }
+
+    useInput((input, key) => {
+        if (input === "0") {
+            setCursor(0)
+        }
+        else if (input === "9") {
+            setCursor(pageSize - 1)
+        }
+        else if (input === "2" || input === "j") {
             // setFollow(false)
-            setLogIndex((index) => Math.max(0, index - 1))
+            setStartIndex(Math.min(startIndex + 1, log.length - pageSize))
+        }
+        else if (input === "8" || input === "k") {
+            // setFollow(false)
+            setStartIndex(Math.max(0, startIndex - 1))
+        }
+        else if (key.downArrow) {
+            moveCursor(1)
+        }
+        else if (key.upArrow) {
+            moveCursor(-1)
+        }
+        else if (key.pageDown) {
+            moveCursor(pageSize)
+        }
+        else if (key.pageUp) {
+            moveCursor(-pageSize)
         }
         else if (key.leftArrow || input === "h") {
             setX((x) => Math.max(0, x - 10))
@@ -65,9 +104,11 @@ const LogViewer = () => {
         }
         else if (input === " ") {
             setDetailView(!detailView)
+            setX(0)
         }
         else if (key.escape) {
             setDetailView(false)
+            setX(0)
         }
         else if (input === "q") {
             app.exit()
@@ -79,24 +120,24 @@ const LogViewer = () => {
             }
             else {
                 setFollow(true)
-                setLogIndex(Math.max(log.length - pageSize, 0))
+                moveCursorToEnd()
             }
         }
         else if (input === "r") {
             setRaw(!raw)
         }
         else if (input === "g") {
-            setLogIndex(0)
+            setCursor(0)
         }
         else if (input === "G") {
-            setLogIndex(log.length - pageSize)
+            setCursor(log.length - pageSize)
         }
         else if (input === "H") {
             setX(0)
         }
         else if (input === "c") {
             if (detailView) {
-                copy(log[logIndex])
+                copy(log[cursor])
             }
             else {
                 copyAll(log)
@@ -105,7 +146,7 @@ const LogViewer = () => {
         }
         else if (input === "y") {
             if (detailView) {
-                copy(log[logIndex], true)
+                copy(log[cursor], true)
             }
             else {
                 copyAll(log, true)
@@ -123,17 +164,15 @@ const LogViewer = () => {
             )])
 
             if (follow) {
-                setLogIndex(Math.max(0, log.length - pageSize + 1))
+                moveCursorToEnd(log.length + 1)
             }
         }
     })
 
-    const selected = log[logIndex]
-
     return <>
-        <Box borderStyle="round" borderColor="gray" flexDirection="column" height={pageSize + 2} paddingX={1}>
-            { detailView && <DetailView message={selected} with={lineWidth - 2}/> }
-            { !detailView && <LogLines lines={log.slice(logIndex, logIndex + pageSize)} lineWidth={lineWidth - 2} x={x} raw={raw}/> }
+        <Box borderStyle="round" borderColor="gray" flexDirection="column" height={pageSize + 2} paddingRight={1} paddingLeft={detailView ? 1 : 0}>
+            { detailView && <DetailView x={x} message={log[cursor + startIndex]} with={lineWidth - 2}/> }
+            { !detailView && <LogLines curser={cursor} lines={log.slice(startIndex, startIndex + pageSize)} lineWidth={lineWidth - 2} x={x} raw={raw}/> }
         </Box>
 
         <Box paddingX={1}>
@@ -143,7 +182,7 @@ const LogViewer = () => {
                 <Separator/>
                 <Option enabled={raw}><HotkeyText>raw</HotkeyText></Option>
                 <Separator/>
-                <Text>{logIndex + 1}/{log.length}</Text>
+                <Text>{cursor + 1 + startIndex}/{log.length}</Text>
                 <Separator/>
                 <HotkeyText>quit</HotkeyText>
                 <Separator/>
