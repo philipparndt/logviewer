@@ -1,9 +1,7 @@
 import { ForegroundColor } from "chalk"
 import { Box, Text } from "ink"
 import React from "react"
-import { text } from "stream/consumers"
-import LogLine from "./LogLine"
-import Space from "./Space"
+import ScrollView from "./ScrollView.js"
 
 type JSONLogLineProps = {
     data: any
@@ -26,27 +24,19 @@ const colorForLevel = (level: string): typeof ForegroundColor => {
     }
 }
 
-const LogLevel = (props: { level: string, text: string }) => {
-    const level = props.level.toUpperCase()
-    const color = colorForLevel(level)
-    return <Text backgroundColor={color}>{props.text}</Text>
-}
-
-const JSONLogLine = ({ data, lineWidth, x }: JSONLogLineProps) => {
+const JSONLogLine = ({ data, x, lineWidth }: JSONLogLineProps) => {
     const timestamp = `${data.ts} `
     const level = data.level
     const message = ` ${data.message}`
-    const messageOffset = timestamp.length + level.length
-    const max = lineWidth - messageOffset
-    const msg = message.substring(x - messageOffset, max + x)
     return <>
         <Box>
-            { x < timestamp.length ? <Text color="gray">{timestamp.substring(x)}</Text> : null}
-            { x < timestamp.length + level.length ? <LogLevel level={level} text={level.substring(x - timestamp.length)}/> : null}
-            { msg.length > 0 ? <Text>{msg}</Text> : <Space/>}
+            <ScrollView x={x} with={lineWidth}>
+                <Text color="gray">{timestamp}</Text>
+                <Text backgroundColor={colorForLevel(level)}>{level}</Text>
+                <Text>{message}</Text>
+            </ScrollView>
         </Box>
     </>
-    // <Text>{messagedata.message.substring(x, lineWidth - data.ts.length - data.level.length - 2 + x)}</Text>
 }
 
 export default JSONLogLine

@@ -1,5 +1,6 @@
 import { Text } from "ink"
 import React from "react"
+import ScrollView from "./ScrollView.js"
 
 type LogLineProps = {
     line: string
@@ -8,12 +9,7 @@ type LogLineProps = {
 }
 
 const LogLine = (props: LogLineProps) => {
-    let text = props.line.substring(props.x, props.lineWidth + props.x)
-    if (text.length === 0) {
-        text = " "
-    }
-
-    return <Text>{text}</Text>
+    return <ScrollView x={props.x} with={props.lineWidth}><Text>{props.line}</Text></ScrollView>
 }
 
 export default LogLine

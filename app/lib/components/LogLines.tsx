@@ -1,6 +1,6 @@
 import React from "react"
-import JSONLogLine from "./JSONLogLine"
-import LogLine from "./LogLine"
+import JSONLogLine from "./JSONLogLine.js"
+import LogLine from "./LogLine.js"
 
 const LogLines = (props: { lines: string[], lineWidth: number, x: number, raw: boolean }) => {
     const logLines = props.lines.map((line, index) => {

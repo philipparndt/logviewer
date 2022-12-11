@@ -1,6 +1,5 @@
 import { Text } from "ink"
 import React from "react"
-import Space from "./Space"
 
 type OptionProps = {
     enabled: boolean

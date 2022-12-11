@@ -1,10 +1,10 @@
 import { Box, Text, useApp, useInput } from "ink"
 import React, { useEffect, useState } from "react"
-import HotkeyText from "./HotkeyText"
-import LogLines from "./LogLines"
-import Option from "./Option"
+import HotkeyText from "./HotkeyText.js"
+import LogLines from "./LogLines.js"
+import Option from "./Option.js"
 import clipboardy from "clipboardy"
-import Separator from "./Separator"
+import Separator from "./Separator.js"
 
 const LogViewer = () => {
     const [message, setMessage] = useState<string | undefined>(undefined)
