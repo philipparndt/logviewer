@@ -5,8 +5,10 @@ import LogLines from "./LogLines.js"
 import Option from "./Option.js"
 import clipboardy from "clipboardy"
 import Separator from "./Separator.js"
+import DetailView from "./DetailView.js"
 
 const LogViewer = () => {
+    const [detailView, setDetailView] = useState(false)
     const [message, setMessage] = useState<string | undefined>(undefined)
     const [raw, setRaw] = useState(false)
     const [x, setX] = useState(0)
@@ -14,6 +16,7 @@ const LogViewer = () => {
     const [lineWidth, setLineWidth] = useState(50)
     const [follow, setFollow] = useState(true)
     const [log, setLog] = useState<string[]>([
+        JSON.stringify({ ts: "2022-12-10T12:00:00.000Z", level: "INFO", message: "Some JSON", number: 123, array: [1, 2, 3], object: { a: 1, b: 2, c: 3 } }),
         "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] 1 Starting up",
         "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] 2 Some",
         "2022-12-10T12:00:00.000Z INFO [main] [main.go:123] 3 More",
@@ -47,7 +50,7 @@ const LogViewer = () => {
     useInput((input, key) => {
         if (key.downArrow || input === "j") {
             // setFollow(false)
-            setLogIndex((index) => Math.min(index + 1, Math.max(0, log.length - pageSize)))
+            setLogIndex((index) => Math.min(index + 1, Math.max(0, log.length - 1)))
         }
         else if (key.upArrow || input === "k") {
             // setFollow(false)
@@ -58,6 +61,12 @@ const LogViewer = () => {
         }
         else if (key.rightArrow || input === "l") {
             setX((x) => x + 10)
+        }
+        else if (input === " ") {
+            setDetailView(!detailView)
+        }
+        else if (key.escape) {
+            setDetailView(false)
         }
         else if (input === "q") {
             app.exit()
@@ -85,12 +94,22 @@ const LogViewer = () => {
             setX(0)
         }
         else if (input === "c") {
-            clipboardy.writeSync(log.join("\n"))
+            if (detailView) {
+                clipboardy.writeSync(log[logIndex])
+            }
+            else {
+                clipboardy.writeSync(log.join("\n"))
+            }
             setMessage("😎 Copied to clipboard")
         }
         else {
             setLog((log) => [...log, JSON.stringify(
-                { ts: new Date().toISOString(), level: "DEBUG", message: `You pressed ${input} ${JSON.stringify(key)}` }
+                {
+                    ts: new Date().toISOString(),
+                    level: "DEBUG",
+                    message: `You pressed ${input}`,
+                    stacktrace: (new Error("some error")).stack
+                }
             )])
 
             if (follow) {
@@ -99,9 +118,12 @@ const LogViewer = () => {
         }
     })
 
+    const selected = log[logIndex]
+
     return <>
         <Box borderStyle="round" borderColor="gray" flexDirection="column" height={pageSize + 2} paddingX={1}>
-            <LogLines lines={log.slice(logIndex, logIndex + pageSize)} lineWidth={lineWidth - 2} x={x} raw={raw}/>
+            { detailView && <DetailView message={selected} with={lineWidth - 2}/> }
+            { !detailView && <LogLines lines={log.slice(logIndex, logIndex + pageSize)} lineWidth={lineWidth - 2} x={x} raw={raw}/> }
         </Box>
 
         <Box paddingX={1}>
@@ -111,7 +133,7 @@ const LogViewer = () => {
                 <Separator/>
                 <Option enabled={raw}><HotkeyText>raw</HotkeyText></Option>
                 <Separator/>
-                <Text>{logIndex}/{log.length}/{pageSize}</Text>
+                <Text>{logIndex + 1}/{log.length}</Text>
                 <Separator/>
                 <HotkeyText>quit</HotkeyText>
                 <Separator/>

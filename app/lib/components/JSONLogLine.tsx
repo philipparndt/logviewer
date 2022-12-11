@@ -2,6 +2,7 @@ import { ForegroundColor } from "chalk"
 import { Box, Text } from "ink"
 import React from "react"
 import ScrollView from "./ScrollView.js"
+import Space from "./Space.js"
 
 type JSONLogLineProps = {
     data: any
@@ -33,6 +34,8 @@ const JSONLogLine = ({ data, x, lineWidth }: JSONLogLineProps) => {
             <ScrollView x={x} with={lineWidth}>
                 <Text color="gray">{timestamp}</Text>
                 <Text backgroundColor={colorForLevel(level)}>{level}</Text>
+                { data.stacktrace && <Text> </Text> }
+                { data.stacktrace && <Text backgroundColor="redBright">{"<STACK>"}</Text> }
                 <Text>{message}</Text>
             </ScrollView>
         </Box>
