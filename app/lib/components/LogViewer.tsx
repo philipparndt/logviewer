@@ -1,13 +1,19 @@
 import { Box, Text, useApp, useInput } from "ink"
 import React, { useEffect, useState } from "react"
 import { copy, copyAll } from "../copy.js"
+import { registerLogger } from "../kubernetes/logger.js"
 import HotkeyText from "./HotkeyText.js"
 import LogLines from "./LogLines.js"
 import Option from "./Option.js"
 import Separator from "./Separator.js"
 import DetailView from "./DetailView.js"
 
-const LogViewer = () => {
+type LogViewerProps = {
+    namespace: string
+    pod: string
+}
+
+const LogViewer = (props: LogViewerProps) => {
     const [detailView, setDetailView] = useState(false)
     const [startIndex, setStartIndex] = useState(0)
     const [cursor, setCursor] = useState(0)
@@ -26,6 +32,19 @@ const LogViewer = () => {
         JSON.stringify({ ts: "2022-12-10T12:00:00.000Z", level: "ERROR", message: "Uuups something went wrong" }),
         JSON.stringify({ ts: "2022-12-10T12:00:00.000Z", level: "DEBUG", message: "some debug message" })
     ])
+
+    useEffect(() => {
+        registerLogger({ namespace: props.namespace, name: props.pod }, (msg) => {
+            setLog(log => {
+                if (follow) {
+                    moveCursorToEnd(log.length + 1)
+                }
+
+                return [...log, msg.message]
+            })
+        })
+            .then()
+    }, [])
 
     useEffect(() => {
         const timeout = setTimeout(() => {

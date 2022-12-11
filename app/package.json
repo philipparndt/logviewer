@@ -7,7 +7,7 @@
     "scripts": {
         "test": "jest",
         "coverage": "jest --coverage",
-        "start": "tsc && node dist/index.js ../config.json",
+        "start": "tsc && node dist/index.js logs kube-system metrics-server-668d979685-th2l9",
         "clean": "rimraf dist",
         "prebuild": "run-s clean",
         "build": "ncc build lib/index.tsx -o dist --minify",
@@ -15,11 +15,15 @@
         "lint:fix": "eslint lib/** --ext .ts,.tsx --fix",
         "generate-test-stubs": "node dist/lib/test-stub-generator.js"
     },
+    "bin": {
+        "k8s-logviewer": "dist/index.js"
+    },
     "keywords": [],
     "author": "Arndt, Philipp",
     "license": "Apache-2.0",
     "private": true,
     "devDependencies": {
+        "@types/byline": "^4.2.33",
         "@types/ink-big-text": "^1.2.1",
         "@types/ink-gradient": "^2.0.1",
         "@types/ink-select-input": "^3.0.1",
@@ -45,7 +49,10 @@
         "typescript": "4.8.4"
     },
     "dependencies": {
+        "@kubernetes/client-node": "^0.17.1",
+        "byline": "^5.0.0",
         "clipboardy": "2.3.0",
+        "commander": "^9.4.1",
         "ink": "3.2.0",
         "ink-text-input": "4.0.3",
         "react": "17.0.2",
